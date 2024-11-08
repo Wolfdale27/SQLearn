@@ -1,0 +1,6 @@
+lib
+bin
+.vscode
+build
+.vscode/settings.json
+CMakeLists.txt.user*
