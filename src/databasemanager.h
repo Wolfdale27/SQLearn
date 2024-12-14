@@ -10,18 +10,15 @@
 
 class DatabaseManager {
 public:
-    DatabaseManager(const QString& dbName, const QString& user, const QString& password, const QString& host, int port) {
-        db = QSqlDatabase::addDatabase("QPSQL");
-        db.setHostName(host);
-        db.setDatabaseName(dbName);
-        db.setUserName(user);
-        db.setPassword(password);
-        db.setPort(port);
+    DatabaseManager(const QString& dbPath) {
+        db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(dbPath);
 
         if (!db.open()) {
             qDebug() << "Ошибка подключения к БД:" << db.lastError().text();
         } else {
-            qDebug() << "Подключение к БД успешно.";
+            qDebug() << "Подключение к SQLite успешно.";
+            initializeDatabase();
         }
     }
 
@@ -35,7 +32,7 @@ public:
         QByteArray compressedData = qCompress(modelJson.toJson(QJsonDocument::Compact), 9);
         QSqlQuery query;
         query.prepare("INSERT INTO models (model_data) VALUES (:model)");
-        query.bindValue(":model", compressedData.toBase64()); 
+        query.bindValue(":model", compressedData.toBase64());
 
         if (!query.exec()) {
             qDebug() << "Ошибка вставки в БД:" << query.lastError().text();
@@ -60,10 +57,22 @@ public:
         return QJsonDocument::fromJson(modelData);
     }
 
-
-
 private:
     QSqlDatabase db;
+
+    void initializeDatabase() {
+        QSqlQuery query;
+        QString createTable = R"(
+            CREATE TABLE IF NOT EXISTS models (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                model_data TEXT NOT NULL
+            )
+        )";
+
+        if (!query.exec(createTable)) {
+            qDebug() << "Ошибка создания таблицы:" << query.lastError().text();
+        }
+    }
 };
 
 #endif // DATABASEMANAGER_H

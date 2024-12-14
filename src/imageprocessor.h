@@ -25,11 +25,7 @@ public:
     }
 
     int labelImage(const QString& filename) {
-        if (filename.contains("apple")) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return filename.contains("banana") ? 1 : 0;
     }
 };
 

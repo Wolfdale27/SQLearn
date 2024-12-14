@@ -3,11 +3,11 @@
 
 #include <opencv2/opencv.hpp>
 #include <QDebug>
-#include "dnnmodel.h"
+#include "neuralnetwork.h"
 
 class CameraRecognition {
 public:
-    CameraRecognition(DNNModel& network) : dnnModel(network) {}
+    CameraRecognition(NeuralNetwork& network) : nn(network) {}
 
     void startRecognition() {
         cv::VideoCapture cap(0);
@@ -19,13 +19,13 @@ public:
 
         cv::Mat frame;
         while (cap.read(frame)) {
-            int label = dnnModel.predict(frame);
+            int label = nn.predict(frame);
 
             if (label == 1) {
                 highlightObject(frame);
-                qDebug() << "Распознанный объект: Банан";
+                qDebug() << "Распознанный объект:" << m_primaryObject;
             } else {
-                qDebug() << "Распознанный объект: Не банан";
+                qDebug() << "Распознанный объект: Не " << m_primaryObject;
             }
 
             cv::imshow("Camera", frame);
@@ -34,10 +34,10 @@ public:
     }
 
 private:
-    DNNModel& dnnModel;
+    NeuralNetwork& nn;
+    QString m_primaryObject{"Банан"};
 
     void highlightObject(cv::Mat& frame) {
-
         int x = frame.cols / 4;
         int y = frame.rows / 4;
         int width = frame.cols / 2;

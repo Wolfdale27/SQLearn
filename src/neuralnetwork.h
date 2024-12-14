@@ -4,6 +4,9 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/ml.hpp>
 #include <QByteArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDebug>
 
 class NeuralNetwork {
 public:
@@ -43,18 +46,23 @@ public:
         return response.at<float>(0, 0) > 0.5 ? 1 : 0;  
     }
 
-    QByteArray serializeModel() {
-        std::vector<uchar> buffer;
-        cv::FileStorage fs(".json", cv::FileStorage::WRITE | cv::FileStorage::MEMORY);
-        mlp->write(fs);
-        std::string modelStr = fs.releaseAndGetString();
-        QByteArray result = QByteArray::fromStdString(modelStr);
-        return result;
+    QString serializeModel() {
+        QJsonObject modelJson;
+        modelJson["weights"] = "serialized_weights_placeholder";  // Сериализация данных модели (заглушка)
+        QJsonDocument doc(modelJson);
+        return QString(doc.toJson(QJsonDocument::Compact));
     }
 
-    void deserializeModel(const QByteArray& data) {
-        cv::FileStorage fs(data.toStdString(), cv::FileStorage::READ | cv::FileStorage::MEMORY);
-        mlp = cv::Algorithm::read<cv::ml::ANN_MLP>(fs.getFirstTopLevelNode());
+    void deserializeModel(const QString& modelData) {
+        QJsonDocument doc = QJsonDocument::fromJson(modelData.toUtf8());
+        if (!doc.isObject()) {
+            qDebug() << "Ошибка: данные модели не в формате JSON.";
+            return;
+        }
+
+        QJsonObject modelJson = doc.object();
+        QString weights = modelJson["weights"].toString();
+        qDebug() << "Десериализованные веса:" << weights;  // Десериализация данных модели (заглушка)
     }
 
 private:
